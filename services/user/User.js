@@ -1,6 +1,8 @@
 const mysql         = require('anytv-node-mysql');
 const err_response  = require('./../../libraries/response/error').err_response;
+const log_query     = require('./../../libraries/logger/log_query').log_query;
                       require('./../../assets/error_response');
+
 
 class User{
   constructor(first_name,last_name,username,password){
@@ -12,7 +14,7 @@ class User{
 
   // FETCH USER w/ SEARCH feature
 
-  async fetchUser(request,response,params){
+  async fetchUser(request,response,args){
 
     // QUERIES WILL BE MODIFIED DEPENDING ON THE SCHEMA
 
@@ -20,29 +22,19 @@ class User{
 
 
     // params.search intended for LIKE query statement of MYSQL (search feature)
-    if(params.search){
+    if(args.search){
       where+= `
-            AND first_name LIKE '%${params.search}%' \
-            OR last_name LIKE '%${params.search}%' \
-            OR username LIKE '%${params.search}%' \
+            AND first_name LIKE '%${args.search}%' \
+            OR last_name LIKE '%${args.search}%' \
+            OR username LIKE '%${args.search}%' \
       `;
     }
     // params.id user for searching using WHERE query statement
-    if(params.id){
+    if(args.id){
 
-      // If id in schema is designed as UUID string
-      if(typeof params.id === 'string'){
         where+= `
-              AND id = '${params.id}'
+              AND id = '${args.id}'
         `;
-      }
-
-      // If id in schema is designed as int
-      if(typeof params.id === 'number'){
-        where+= `
-              AND id = ${params.id}
-        `;
-      }
 
     };
 
@@ -55,7 +47,7 @@ class User{
 
 
     // LOG for the query statement
-    console.log(query.replace(/\s+/g, " "))
+    log_query(query);
 
     let user,err;
 
@@ -77,6 +69,10 @@ class User{
         context : 'Retrieved data succesfully'
       })
       .status(200);
+
+  }
+
+  async createUser(request,response,args){
 
   }
 
