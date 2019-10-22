@@ -9,16 +9,34 @@ const err_response      = require('./../libraries/response/error').err_response;
 
 
 const getUsers = async(req,res,next)=>{
-  res.setHeader('Content-Type', 'application/json');
-  
-  let userClass = new User();
 
-  userClass.fetchUser(req,res);
+  let userClass = new User();
+  let {
+    search
+  } = req.query;
+
+  userClass.fetchUser(req,res,{
+    search : search
+  });
 
 }
 
 
+const getUserById = async(req,res,next)=>{
+
+  let userClass = new User();
+  let {
+    id
+  } = req.params;
+
+  userClass.fetchUser(req,res,{
+    id : id
+  });
+
+}
+
 
 module.exports = {
-  getUsers
+  getUsers,
+  getUserById
 }
