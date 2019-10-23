@@ -12,7 +12,7 @@ require('./config/config');
 // Import global functions
 require('./global_functions');
 
-console.log(MYSQL_DATABASE)
+
 // Use Database CLASS method to setup database connection
 Database.setupDatabaseConnection({
   host : MYSQL_HOST,
@@ -21,9 +21,11 @@ Database.setupDatabaseConnection({
   database : MYSQL_DATABASE
 });
 
+
 // Setup bodyParser to accept json
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({limit: "50mb", extended: false, parameterLimit:50000,type:'*/x-www-form-urlencoded'}));
+
 
 // CORS configuration
 app.use((req, res, next) => {

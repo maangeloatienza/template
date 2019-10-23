@@ -5,7 +5,7 @@ require('./../../assets/error_response');
 
 
 exports.err_response = (res,message,context,status)=>{
-    res.status(status).send({
+    return res.status(status).json({
         message : message,
         context : context
     });

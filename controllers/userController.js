@@ -9,7 +9,7 @@ const err_response      = require('./../libraries/response/error').err_response;
 
 const userClass = new User();
 
-const user  = {
+const userBody  = {
     first_name    : '',
     last_name     : '',
     username      : '',
@@ -28,8 +28,20 @@ const getUsers = async(req,res,next)=>{
   } = req.query;
 
 
-  userClass.fetchUser(req,res,{
+  let users = await userClass.fetchUser(req,res,{
     search : search
+  });
+
+
+  if(!users.user.length){
+    return err_response(res,ZERO_RES,ZERO_RES,404);
+  }
+
+  return res.status(200).json({
+    data : users.user,
+    total : users.count,
+    message : 'Users succesfully fetched',
+    context : 'Data fetched succesfully'
   });
 
 }
@@ -43,17 +55,30 @@ const getUserById = async(req,res,next)=>{
   } = req.params;
 
 
-  userClass.fetchUser(req,res,{
-    id : id
+  let user = await userClass.fetchUser(req,res,{
+    where : {
+      id : id
+    }
   });
+
+
+  if(!user.user.length){
+    return err_response(res,ZERO_RES,ZERO_RES,404);
+  }
+
+  return res.status(200).json({
+    data : user.user[0],
+    message : 'User succesfully fetched',
+    context : 'Data fetched succesfully'
+  });
+
 
 }
 
 const createUser = async(req,res,next)=>{
 
-
   userClass.createUser(req,res,{
-    body : user
+    body : userBody
   });
 
 
