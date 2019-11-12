@@ -20,6 +20,17 @@ const userBody  = {
     _role_id      : ''
 }
 
+const userOptBody = {
+    _first_name    : '',
+    _last_name     : '',
+    _username      : '',
+    _email         : '',
+    _password      : '',
+    _phone_number  : '',
+    _address       : '',
+    _role_id      : ''
+}
+
 const getUsers = async(req,res,next)=>{
 
 
@@ -85,8 +96,38 @@ const createUser = async(req,res,next)=>{
 }
 
 
+const updateUser = async(req,res,next)=>{
+
+
+  let {
+    id
+  } = req.params;
+  let err;
+  let users;
+
+  [err,users] = await to(userClass.updateUser(req,res,{
+    where : {
+      id : id,
+
+    },
+    body : userOptBody
+  }));
+
+
+
+  return res.status(200).json({
+    message : 'User updated succesfully',
+    context : 'Data updated succesfully'
+  });
+
+
+}
+
+
+
 module.exports = {
   getUsers,
   getUserById,
-  createUser
+  createUser,
+  updateUser
 }

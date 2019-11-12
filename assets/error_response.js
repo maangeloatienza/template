@@ -26,5 +26,6 @@ DUP_ENTRY='Duplicate insert entry',
 NO_PASS= 'No password is found',
 BAD_REQ = 'Bad request',
 EXISTING = 'Already exist',
+NOT_EXISTING = 'Does not exist',
 ERR_CREATING = 'Error creating data',
 ERR_UPDATING = 'Error updating data'

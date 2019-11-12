@@ -147,7 +147,7 @@ class User{
     let where = `WHERE deleted IS null `;
 
     // params.username intended to validate if username already exists
-
+    console.log(args.where)
     if(args.where != undefined){
 
 
@@ -156,6 +156,15 @@ class User{
           AND username = '${args.where.username}'
         `;
       }
+
+      // params.id user for searching using WHERE query statement
+      if(args.where.id){
+
+          where+= `
+                AND id = '${args.where.id}'
+          `;
+
+      };
 
 
     }
@@ -184,11 +193,27 @@ class User{
 
 
     // Check if query data already exist
-    if(user.length) return false;
 
-    return true;
+    if(args.where.username){
+
+      if(user.length) return false;
+
+      return true;
+
+    }
+
+    if(args.where.id) {
+
+      if(user.length) return true;
+
+      return false;
+
+    }
+
 
   }
+
+  // CREATE USER
 
   async createUser(request,response,args){
 
@@ -212,6 +237,8 @@ class User{
         username : data.username
       }
     }));
+
+
     if(validate_user===false){
 
       return err_response(response,EXISTING,EXISTING,400);
@@ -242,7 +269,7 @@ class User{
     });
 
 
-    function send_response(err,result,args,last_query){
+    async function send_response(err,result,args,last_query){
 
 
       log_query(last_query)
@@ -274,6 +301,123 @@ class User{
       });
 
     }
+
+
+  }
+
+
+  async updateUser(request,response,args){
+
+    let err;
+    let user;
+    let validate_user;
+    let id = args.where.id;
+    let data = util._get
+    .form_data(args.body)
+    .from(request.body);
+
+
+    // Validate request body
+    if(data instanceof Error){
+      return err_response(response,data.message,INC_DATA,500);
+    }
+
+    [err,validate_user] = await to(new User().validateUser(request,response,{
+      where : {
+        id : id
+      }
+    }));
+
+
+
+    if(validate_user===false){
+
+      return err_response(response,NOT_EXISTING,NOT_EXISTING,404);
+
+    }
+
+
+    data.updated = new Date();
+
+
+    mysql.use('master')
+      .query(`UPDATE users SET ? WHERE id = ?`,
+        [data,id],
+        send_response
+    )
+    .end();
+
+    async function send_response(err,result,args,last_query){
+
+      log_query(last_query)
+
+
+      // Validate if query does have errors
+      // return a json containg message and context of the error with a status code of 500
+      if(err){
+        return err_response(response,err,BAD_REQ,500);
+      }
+
+
+      // Check if query executes succesfully
+      if(!result.affectedRows){
+        return err_response(response,ERR_UPDATING,NO_RECORD_CREATED,400);
+      }
+
+      // Fetch the newly updated user
+      [err,user] = await to(new User().fetchUser(request,response,{
+        where : {
+          id : id
+        }
+      }));
+
+
+      // Send a response of JSON if data is created
+
+      return {
+        user : user.user
+      };
+
+      // return response.status(200).json({
+      //   data : user,
+      //   message : 'User updated succesfully',
+      //   context : 'Data updated succesfully'
+      // });
+    }
+
+
+  }
+
+  async deleteUser(request,response,args){
+
+    let err;
+    let user;
+    let validate_user;
+    let id = args.where.id;
+    let query = ` UPDATE users SET deleted = now() WHERE id = ${id}`;
+
+    [err,validate_user] = await to(new User().validateUser(request,response,{
+      where : {
+        id : id
+      }
+    }));
+
+    if(err){
+      return err_response(response,err,BAD_REQ,500);
+    }
+
+    [err,user] = await to(mysql.build(query).promise());
+
+    if(err){
+      return err_response(response,err,BAD_REQ,500);
+    }
+
+    // Send a response of JSON if data is deleted
+
+    return response.status(200).json({
+      message : 'User deleted succesfully',
+      context : 'Data deleted succesfully'
+    });
 
 
   }

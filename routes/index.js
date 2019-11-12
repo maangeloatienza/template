@@ -11,9 +11,10 @@ const userCtrl        = require('./../controllers/userController');
 // ROUTES
 
 // USER ROUTES
-router.get('/users', userCtrl.getUsers);
-router.get('/users/:id', userCtrl.getUserById);
-router.post('/users', userCtrl.createUser);
+router.get ('/users',     userCtrl.getUsers);
+router.get ('/users/:id', userCtrl.getUserById);
+router.post('/users',     userCtrl.createUser);
+router.put ('/users/:id', userCtrl.updateUser);
 
 
 module.exports = router;
