@@ -31,6 +31,12 @@ const userOptBody = {
     _role_id      : ''
 }
 
+const userLoginBody = {
+    username      : '',
+    password      : ''
+
+}
+
 const getUsers = async(req,res,next)=>{
 
 
@@ -123,11 +129,20 @@ const updateUser = async(req,res,next)=>{
 
 }
 
+const loginUser = async(req,res,next)=>{
+
+  userClass.loginUser(req,res,{
+    body : userLoginBody
+  });
+
+}
+
 
 
 module.exports = {
   getUsers,
   getUserById,
   createUser,
-  updateUser
+  updateUser,
+  loginUser
 }

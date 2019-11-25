@@ -193,12 +193,14 @@ class User{
 
 
     // Check if query data already exist
-
     if(args.where.username){
 
-      if(user.length) return false;
+      if(user.length) return {
+        valid : false,
+        data : user[0]
+      };
 
-      return true;
+      return true
 
     }
 
@@ -402,11 +404,15 @@ class User{
       }
     }));
 
+
+
     if(err){
       return err_response(response,err,BAD_REQ,500);
     }
 
     [err,user] = await to(mysql.build(query).promise());
+
+    log_query(query);
 
     if(err){
       return err_response(response,err,BAD_REQ,500);
@@ -421,6 +427,115 @@ class User{
 
 
   }
+
+
+  async loginUser(request,response,args){
+
+    let err;
+    let user = {};
+    let validate_user;
+    let data = util._get
+    .form_data(args.body)
+    .from(request.body);
+
+    if(data instanceof Error) {
+
+      return err_response(response,data.message,INC_DATA,500);
+
+    }
+
+    [err,validate_user] = await to(new User().validateUser(request,response,{
+      where : {
+        username : data.username
+      }
+    }));
+
+
+    if(validate_user.valid){
+      return err_response(response,NOT_EXISTING,NOT_EXISTING,500);
+    }
+
+    if(err){
+      return err_response(response,err,BAD_REQ,500);
+    }
+    console.log(data.password)
+    console.log(validate_user.data.password)
+    bcrypt.compare(data.password,validate_user.data.password,(err,resp)=>{
+      console.log(resp)
+
+            if(err){
+
+                return err_response(response,LOG_FAIL,err,500);
+            }
+            if(!resp){
+                return err_response(response,`${INV_USER}/${INV_PASS}`,LOG_FAIL,404);
+            }
+            if(resp){
+                const token = jwt.sign({
+                    id          : validate_user.data.id,
+                    first_name  : validate_user.data.first_name,
+                    last_name   : validate_user.data.last_name,
+                    username    : validate_user.data.username,
+                    email       : validate_user.data.email,
+                    phone_number: validate_user.data.phone_number,
+                    role        : validate_user.data.role
+                },'secret');
+
+                if(saveToken(token)===false){
+                    return err_response(response,NO_TOKEN_CREATED,err,500);
+                }
+                user.token = `Bearer ${token}`;
+                return response.status(200).json({
+                    message     : 'Success',
+                    data        : user,
+                    //token       : `Bearer ${token}`,
+                    success     : true
+                })
+                // .send();
+            }
+
+        });
+
+        function saveToken (token){
+
+          let data = {};
+          let err;
+          let validate_user;
+
+          data.id = uuidv4();
+          data.token = token;
+          data.created = new Date();
+
+
+          mysql.use('master')
+              .query(
+                  `
+                      INSERT INTO tokens SET ?
+                  `,
+                  data,
+                  validate_token
+              )
+              .end();
+
+
+          function validate_token(err,result,args,last_query){
+              if(err){
+                  return false
+              }
+
+              if(!result.affectedRows){
+                  return false
+              }
+
+              return true;
+          }
+
+        }
+
+  }
+
+
+
 
 
 }
